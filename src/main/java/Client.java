@@ -67,6 +67,7 @@ class Client {
         try {
             z = new ZipFile(f);
 
+            //TODO retool these so packets are made independent of writerequest
             //make packets
             start = makeWriteRequestPacket(filename,z);
 
@@ -114,7 +115,7 @@ class Client {
         byte[] bytes = new byte[totalBytesNeeded];
         b.flip();
         b.get(bytes);
-        return new DatagramPacket(bytes, 0, totalBytesNeeded,address,PORT);
+        return makePacket(bytes);
     }
 
     private void makeDataPackets(ZipFile data){
@@ -154,10 +155,25 @@ class Client {
         }
     }
     private DatagramPacket markDatagramPacket(short num, byte[] data){
+        ByteBuffer b = ByteBuffer.allocate(4 + data.length);
         //mark as data packet
-        //mark packet dataNum;
+        b.putShort(DATA_CODE);
 
-        return null;
+        //mark packet dataNum;
+        b.putShort(num);
+
+        //add data
+        b.put(data);
+
+        byte[] bytes = new byte[4 + data.length];
+        b.flip();
+        b.get(bytes);
+
+        return makePacket(data);
+    }
+
+    private DatagramPacket makePacket(byte[] data){
+        return new DatagramPacket(data,0,data.length,address,PORT);
     }
     private void handleOverQueuing(){
         //while not interrupted
