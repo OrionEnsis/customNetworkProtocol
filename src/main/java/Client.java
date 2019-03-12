@@ -1,7 +1,11 @@
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -12,15 +16,19 @@ class Client {
     private final boolean HAS_SLIDING_WINDOW;
     private final boolean SIM_DROP_PACKETS;
     private final short PACKET_SIZE = 4096;
+    private final short DATA_CODE = 3;
     private final String sendAddress = "pi.cs.oswego.edu";
 
     private DatagramSocket socket;
     private InetAddress address;
 
     private ArrayBlockingQueue<Short> ackQueue; //set of packets awaiting ack
-    private ConcurrentHashMap<Short,DatagramPacket> allPackets;
+    private ConcurrentHashMap<Short, DatagramPacket> allPackets;
     private ArrayBlockingQueue<DatagramPacket> packetQueue;
     Client(String[] args){
+        ackQueue = new ArrayBlockingQueue<>(10000);
+        allPackets = new ConcurrentHashMap<>();
+        packetQueue = new ArrayBlockingQueue<>(10000);
 
         //get ipvMode
         try {
@@ -103,22 +111,54 @@ class Client {
         b.putShort(PACKET_SIZE);
         b.put((byte)0);
 
-        byte bytes[] = new byte[totalBytesNeeded];
+        byte[] bytes = new byte[totalBytesNeeded];
         b.flip();
         b.get(bytes);
-        DatagramPacket packet = new DatagramPacket(bytes,0, totalBytesNeeded,address,PORT);
-        return packet;
+        return new DatagramPacket(bytes, 0, totalBytesNeeded,address,PORT);
     }
 
     private void makeDataPackets(ZipFile data){
-        //while we still have data to process
-            //grab max size for packet -4 bytes
-            //mark as data packet
-            //mark packet dataNum;
-            //save packet dataNum for later
-        //Queue up all packets
-    }
+        final int HEADER_SIZE = 4;
+        //convert data to binary
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ObjectOutputStream zipOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            zipOutputStream.writeObject(data);
 
+            byte[] bytes = byteArrayOutputStream.toByteArray();
+
+            int i = 0;
+            short packetNum = 0;
+            byte[] byteData;
+
+            //while we still have data to process
+            while(i < bytes.length){
+                //grab max size for packet -4
+                int endRange = PACKET_SIZE - HEADER_SIZE;
+                if(endRange < bytes.length)
+                    byteData = Arrays.copyOfRange(bytes,i,endRange);
+                else{
+                    byteData = Arrays.copyOfRange(bytes,i,bytes.length);
+                }
+                i += endRange;
+
+                //save packet dataNum for later
+                allPackets.put(packetNum,markDatagramPacket(packetNum,byteData));
+                packetNum++;
+
+            }
+
+        //Queue up all packets
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private DatagramPacket markDatagramPacket(short num, byte[] data){
+        //mark as data packet
+        //mark packet dataNum;
+
+        return null;
+    }
     private void handleOverQueuing(){
         //while not interrupted
             //check for members in queue
