@@ -14,6 +14,7 @@ class Client {
     private ConcurrentHashMap<Short,DatagramPacket> allPackets;
     private ArrayBlockingQueue<DatagramPacket> packetQueue;
     Client(String[] args){
+
         //get ipvMode
         try {
             socket = new DatagramSocket(PORT);

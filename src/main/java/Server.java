@@ -4,6 +4,7 @@ class Server {
     private final int PORT = 2697;
     private InetAddress address;
     DatagramSocket socket;
+
     Server(String[] args){
         try {
             socket = new DatagramSocket(PORT);
@@ -61,5 +62,11 @@ class Server {
     private void sendDataAck(){
         //2 byte 4
         //2 byte package number
+    }
+
+    private void makeFile(){
+        //get save directory
+        //unzip file
+        //put file there
     }
 }
