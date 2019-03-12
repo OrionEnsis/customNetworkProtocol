@@ -16,9 +16,7 @@ class Server {
                 //IPV6
                 address = Inet6Address.getLocalHost();
             }
-        } catch (SocketException e) {
-            e.printStackTrace();
-        } catch (UnknownHostException e) {
+        } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
         }
     }
