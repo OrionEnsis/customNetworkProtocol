@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.*;
 import java.util.zip.ZipFile;
 
 class Client {
@@ -18,21 +15,26 @@ class Client {
     private final short PACKET_SIZE = 4096;
     private final short DATA_CODE = 3;
     private final String sendAddress = "pi.cs.oswego.edu";
+    private final int TIMEOUT = 5000;
+    private final int BLOCK_SIZE = 100;
 
     private DatagramSocket socket;
     private InetAddress address;
 
-    private ArrayBlockingQueue<Short> ackQueue; //set of packets awaiting ack
-    private ConcurrentHashMap<Short, DatagramPacket> allPackets;
-    private ArrayBlockingQueue<DatagramPacket> packetQueue;
+    private HashSet<Short> blockPackets;                    //set of packets awaiting ack
+    private HashMap<Short, DatagramPacket> allPackets;  //hash of all packets
+    private Queue<Short> packetQueue;                   //queue of all remaining packets
+
     Client(String[] args){
-        ackQueue = new ArrayBlockingQueue<>(10000);
-        allPackets = new ConcurrentHashMap<>();
-        packetQueue = new ArrayBlockingQueue<>(10000);
+        blockPackets = new HashSet<>();
+        allPackets = new HashMap<>();
+        packetQueue = new ArrayDeque<>();
 
         //get ipvMode
         try {
             socket = new DatagramSocket(PORT);
+            socket.setSoTimeout(TIMEOUT);
+
             //get ipvMode
             if (args[1].equals("ipv4")) {
                 //IPV4
@@ -44,6 +46,7 @@ class Client {
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
         }
+
         //get window or stack
         HAS_SLIDING_WINDOW = args[2].equalsIgnoreCase("windowed");
 
@@ -67,11 +70,11 @@ class Client {
         try {
             z = new ZipFile(f);
 
-            //TODO retool these so packets are made independent of writerequest
             //make packets
-            start = makeWriteRequestPacket(filename,z);
+            makeDataPackets(z);
 
             //start sending.
+            start = makeWriteRequestPacket(filename);
             send(start);
 
         } catch (IOException e) {
@@ -86,12 +89,11 @@ class Client {
         }
     }
 
-    private DatagramPacket makeWriteRequestPacket(String filename,ZipFile zipFile){
+    private DatagramPacket makeWriteRequestPacket(String filename){
         byte[] fileNameAsBytes = filename.getBytes();
         byte[] octet = "octet".getBytes();
         int totalBytesNeeded = fileNameAsBytes.length + octet.length + 10; //10 is number of extra bytes for spacing
         ByteBuffer b = ByteBuffer.allocate(totalBytesNeeded);
-        makeDataPackets(zipFile);
 
         //2bytes == 1 for write request
         b.putShort((short)1);
@@ -145,6 +147,7 @@ class Client {
 
                 //save packet dataNum for later
                 allPackets.put(packetNum,markDatagramPacket(packetNum,byteData));
+                packetQueue.add(packetNum);
                 packetNum++;
 
             }
@@ -175,31 +178,75 @@ class Client {
     private DatagramPacket makePacket(byte[] data){
         return new DatagramPacket(data,0,data.length,address,PORT);
     }
-    private void handleOverQueuing(){
-        //while not interrupted
-            //check for members in queue
-            //if number exceeds max number
-                //requeue until below threshold
-
-    }
-
-    private void receiveAcks(){
-        //while not interrupted
-            //wait for reply
-            //read ack
-            //add ack to set
-    }
 
     private void send(DatagramPacket startPacket){
-        //send write request
-        //get ack
-        //start ack thread
+        byte[] data = new byte[startPacket.getLength()];
+        boolean notReceivedStartAck = true;
+        DatagramPacket receiveAck = new DatagramPacket(data, data.length);
+        int maxPackets;
+        if(HAS_SLIDING_WINDOW){
+            maxPackets = BLOCK_SIZE;
+        }
+        else{
+            maxPackets = 1;
+        }
+        while(notReceivedStartAck) {
+            try {
+                //send write request
+                socket.send(startPacket);
+                //get ack
+
+                socket.receive(receiveAck);
+                notReceivedStartAck = false;
+            } catch (IOException e) {
+                System.out.println("packet failed for some reason, resending");
+            }
+        }
+
         //while there are packets to send and we are still awaiting acks
-            //if in single mode and still ack is still waiting.
-                //continue
-            //if send packet exists and is not received
-                //if not sim drop
-                    //send packet
-                //add to ack queue
+        while(!blockPackets.isEmpty() && !packetQueue.isEmpty()) {
+            short currentPacket;
+            //send "block" of packets
+            try {
+                blockPackets = new HashSet<>();
+                for (int i = 0; i < maxPackets && !packetQueue.isEmpty(); i++) {
+                    currentPacket = packetQueue.poll();
+                    blockPackets.add(currentPacket);
+                    socket.send(allPackets.get(currentPacket));
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                //receive up to block of packets
+                while (blockPackets.size() != 0) {
+                    data = new byte[7];//number of bytes in ackpacket
+                    DatagramPacket packet = new DatagramPacket(data, data.length);
+                    socket.receive(packet);
+                    short packetNum = decodeReceivePacket(packet);
+                    blockPackets.remove(packetNum);
+                }
+            } catch (IOException e) {
+                //insert the remainders
+                packetQueue.addAll(blockPackets);
+            }
+        }
+    }
+
+    private short decodeReceivePacket(DatagramPacket packet){
+        short temp = -1;
+        ByteBuffer b = ByteBuffer.allocate(packet.getLength());
+        b.put(packet.getData());
+        b.flip();
+
+        short opCode = b.getShort();
+
+        if(opCode == 6){
+            b.get();
+            temp = b.getShort();
+        }
+        return temp;
     }
 }
