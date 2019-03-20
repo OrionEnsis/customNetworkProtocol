@@ -3,7 +3,7 @@ import java.net.*;
 class Server {
     private final int PORT = 2697;
     private InetAddress address;
-    DatagramSocket socket;
+    private DatagramSocket socket;
 
     Server(String[] args){
         try {
@@ -29,7 +29,7 @@ class Server {
             //else if it is a data packet
                 //handle data
 
-            //if all packets receieved
+            //if all packets received
                 //turn into a file
     }
 
@@ -45,7 +45,7 @@ class Server {
         //packet size
         //0
 
-        //create a bytearray for them.
+        //create a byte array for them.
         //send ack back
     }
 

@@ -184,18 +184,22 @@ class Client {
         boolean notReceivedStartAck = true;
         DatagramPacket receiveAck = new DatagramPacket(data, data.length);
         int maxPackets;
+
+        //setup for sliding window
         if(HAS_SLIDING_WINDOW){
             maxPackets = BLOCK_SIZE;
         }
         else{
             maxPackets = 1;
         }
+
+        //while we are a waiting for the OK to send the file.
         while(notReceivedStartAck) {
             try {
                 //send write request
                 socket.send(startPacket);
-                //get ack
 
+                //get ack
                 socket.receive(receiveAck);
                 notReceivedStartAck = false;
             } catch (IOException e) {
@@ -209,30 +213,38 @@ class Client {
             //send "block" of packets
             try {
                 blockPackets = new HashSet<>();
+
                 for (int i = 0; i < maxPackets && !packetQueue.isEmpty(); i++) {
                     currentPacket = packetQueue.poll();
                     blockPackets.add(currentPacket);
                     socket.send(allPackets.get(currentPacket));
 
                 }
+                System.out.println("Full block sent");
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Not all packets sent.");
             }
 
             try {
                 //receive up to block of packets
                 while (blockPackets.size() != 0) {
-                    data = new byte[7];//number of bytes in ackpacket
+                    data = new byte[7];//number of bytes in ack packet
                     DatagramPacket packet = new DatagramPacket(data, data.length);
                     socket.receive(packet);
                     short packetNum = decodeReceivePacket(packet);
                     blockPackets.remove(packetNum);
                 }
+
+                System.out.println("All acknowledgements received from last block");
             } catch (IOException e) {
                 //insert the remainders
                 packetQueue.addAll(blockPackets);
+                System.out.println("Only a partial full block sent.");
             }
         }
+
+        //file should have been sent.
+        System.out.println("File sent");
     }
 
     private short decodeReceivePacket(DatagramPacket packet){
