@@ -74,10 +74,7 @@ public class WriteRequestPacket extends BasicPacket{
         b.put((byte)0);
 
         //make the new packet
-        byte[] bytes = new byte[totalBytesNeeded];
-        b.flip();
-        b.get(bytes);
-        packet = new DatagramPacket(bytes,bytes.length,address,port);
+        createPacket(b,totalBytesNeeded);
     }
 
     private void decodePacket() {

@@ -46,4 +46,11 @@ public class BasicPacket {
     DatagramPacket getAsUDPPacket(){
         return packet;
     }
+
+    protected void createPacket(ByteBuffer b, int size){
+        byte[] bytes = new byte[size];
+        b.flip();
+        b.get(bytes);
+        packet = new DatagramPacket(bytes,bytes.length,address,port);
+    }
 }

@@ -55,11 +55,7 @@ public class WriteAcknowledgementPacket extends BasicPacket {
         //Packet Size
         insertShort(b,packetSize);
 
-        byte[] bytes = new byte[spaceNeeded];
-        b.flip();
-        b.get(bytes);
-
-        packet = new DatagramPacket(bytes,bytes.length,address,port);
+        createPacket(b,spaceNeeded);
     }
 
     private void insertShort(ByteBuffer b, short s){
