@@ -163,6 +163,7 @@ class Server {
         socket.send(packet);
     }
 
+    //TODO remove this
     public String getStringFromBuffer(ByteBuffer b){
         int startPosition = b.position();
         byte nextByte = b.get();

@@ -10,6 +10,12 @@ public class BasicPacket {
     protected InetAddress address;
     protected int port;
 
+    BasicPacket(DatagramPacket packet){
+        address = packet.getAddress();
+        port = packet.getPort();
+        this.packet = packet;
+        opCode = getOpCodeFromPacket();
+    }
     BasicPacket(short opcode, InetAddress address, int port){
         this.opCode = opcode;
         this.address = address;
@@ -17,7 +23,7 @@ public class BasicPacket {
         makePacket();
     }
 
-    protected void makePacket(){
+    private void makePacket(){
         ByteBuffer b = ByteBuffer.allocate(2);
         b.putShort(opCode);
         b.flip();
@@ -32,7 +38,7 @@ public class BasicPacket {
     public short getOpCodeFromPacket(){
         ByteBuffer b = ByteBuffer.allocate(packet.getLength());
         b.put(packet.getData());
-
+        b.flip();
 
         return b.getShort();
     }

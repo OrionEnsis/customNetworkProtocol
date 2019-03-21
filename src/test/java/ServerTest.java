@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 public class ServerTest {
 
     @Test
-    void getStringFromBufferTest1() {
+    public void getStringFromBufferTest1() {
         String testWord = "Phillip";
         ByteBuffer b = ByteBuffer.allocate(testWord.length()+1);
         b.put(testWord.getBytes());
