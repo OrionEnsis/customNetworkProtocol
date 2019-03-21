@@ -1,8 +1,12 @@
 package Packets;
 
+import javax.xml.crypto.Data;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DataPacket extends BasicPacket {
     private short packetNum;
@@ -39,7 +43,7 @@ public class DataPacket extends BasicPacket {
         return packetNum;
     }
 
-    public byte[] getData() {
+    byte[] getData() {
         return data;
     }
 
@@ -54,4 +58,27 @@ public class DataPacket extends BasicPacket {
         createPacket(b,spaceNeeded);
     }
 
+    public static List<DataPacket> getPacketsNeededForData(byte[] data, short packetSize, InetAddress address, int port){
+        int headerSize = 4;
+        int i = 0;
+        ArrayList<DataPacket> packets = new ArrayList<>();
+        short packetNum = 0;
+        while(i < data.length){
+            int endRange = packetSize - headerSize +i;
+            byte[] packetData;
+            if(endRange<data.length){
+                packetData = Arrays.copyOfRange(data,i,endRange);
+            }
+            else{
+                packetData = Arrays.copyOfRange(data,i,data.length);
+            }
+
+            i+= endRange;
+
+            packets.add(new DataPacket(address,port,packetNum,packetData));
+            packetNum++;
+        }
+
+        return packets;
+    }
 }

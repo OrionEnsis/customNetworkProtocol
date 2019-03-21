@@ -35,7 +35,7 @@ public class BasicPacket {
         return opCode;
     }
 
-    public short getOpCodeFromPacket(){
+    short getOpCodeFromPacket(){
         ByteBuffer b = ByteBuffer.allocate(packet.getLength());
         b.put(packet.getData());
         b.flip();
@@ -43,11 +43,11 @@ public class BasicPacket {
         return b.getShort();
     }
 
-    DatagramPacket getAsUDPPacket(){
+    public DatagramPacket getAsUDPPacket(){
         return packet;
     }
 
-    protected void createPacket(ByteBuffer b, int size){
+    void createPacket(ByteBuffer b, int size){
         byte[] bytes = new byte[size];
         b.flip();
         b.get(bytes);

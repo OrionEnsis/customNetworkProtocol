@@ -6,8 +6,6 @@ import org.junit.Test;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static org.junit.Assert.*;
-
 public class WriteAcknowledgementPacketTest {
 
     @Test
