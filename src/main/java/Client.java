@@ -1,12 +1,9 @@
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.*;
-import java.util.zip.ZipFile;
 
 class Client {
     private final int PORT = 2697;
@@ -58,35 +55,27 @@ class Client {
         Scanner scanner = new Scanner(System.in);
         String filename;
         File f;
-        ZipFile z = null;
+        //ZipFile z = null;
         DatagramPacket start;
 
         //prompt for directory
         System.out.println("Enter the file Directory");
-        filename = scanner.nextLine();
+        //filename = scanner.nextLine();
+        filename = "/home/jspagnol/chatlog.txt";
         f = new File(filename);
         filename = f.getName();
         //zip it up
-        try {
-            z = new ZipFile(f);
 
-            //make packets
-            makeDataPackets(z);
+        //TODO figure out zipping
 
-            //start sending.
-            start = makeWriteRequestPacket(filename);
-            send(start);
+        //make packets
+        makeDataPackets(f);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally{
-            try {
-                if (z != null)
-                    z.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        //start sending.
+        start = makeWriteRequestPacket(filename);
+        send(start);
+
+
     }
 
     private DatagramPacket makeWriteRequestPacket(String filename){
@@ -120,15 +109,12 @@ class Client {
         return makePacket(bytes);
     }
 
-    private void makeDataPackets(ZipFile data){
+    private void makeDataPackets(File data){
         final int HEADER_SIZE = 4;
         //convert data to binary
         try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ObjectOutputStream zipOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-            zipOutputStream.writeObject(data);
 
-            byte[] bytes = byteArrayOutputStream.toByteArray();
+            byte[] bytes = Files.readAllBytes(data.toPath()).clone();
 
             int i = 0;
             short packetNum = 0;
@@ -137,7 +123,7 @@ class Client {
             //while we still have data to process
             while(i < bytes.length){
                 //grab max size for packet -4
-                int endRange = PACKET_SIZE - HEADER_SIZE;
+                int endRange = PACKET_SIZE - HEADER_SIZE + i;
                 if(endRange < bytes.length)
                     byteData = Arrays.copyOfRange(bytes,i,endRange);
                 else{
@@ -196,19 +182,21 @@ class Client {
         //while we are a waiting for the OK to send the file.
         while(notReceivedStartAck) {
             try {
+                System.out.println("Sending first ack Packet");
                 //send write request
                 socket.send(startPacket);
 
                 //get ack
                 socket.receive(receiveAck);
                 notReceivedStartAck = false;
+                System.out.println("acknowledgement receieved.  Starting data Transfer");
             } catch (IOException e) {
                 System.out.println("packet failed for some reason, resending");
             }
         }
 
         //while there are packets to send and we are still awaiting acks
-        while(!blockPackets.isEmpty() && !packetQueue.isEmpty()) {
+        while(!blockPackets.isEmpty() || !packetQueue.isEmpty()) {
             short currentPacket;
             //send "block" of packets
             try {

@@ -1,10 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 class Server {
     private final int PORT = 2697;
@@ -31,6 +28,8 @@ class Server {
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();
         }
+
+        System.out.println("Server Established, awaiting connection");
     }
 
     void run(){
@@ -48,6 +47,7 @@ class Server {
             try {
                 //wait for packet
                 socket.receive(currentPacket);
+                System.out.println("Received Packet");
 
                 //get packet type
                 packetType = determinePacketType(currentPacket);
@@ -55,6 +55,7 @@ class Server {
                 //if packet is file packet
                 if(packetType == 1) {
                     //set up for file transfer
+                    System.out.println("write request packet Received");
                     setupWriteRequest(currentPacket);
                     bytes = new byte[packetSize];
                     currentPacket = new DatagramPacket(bytes,bytes.length);
@@ -62,6 +63,7 @@ class Server {
                 }
                 //else if it is a data packet
                 else if( packetType == 3) {
+                    System.out.println("Data packet received");
                     //handle data
                     if(b != null)
                         handleDataPacket(currentPacket,b);
@@ -82,19 +84,27 @@ class Server {
 
     private short determinePacketType(DatagramPacket packet){
         short temp;
-        ByteBuffer b = ByteBuffer.allocate(packet.getLength());
+        System.out.println("packet size: " + packet.getLength());
+        System.out.println("bytes: " + packet.getData().length);
+        ByteBuffer b = ByteBuffer.allocate(packet.getData().length*2);
+        System.out.println("ByteBuffer " + b.array().length);
+
         b.put(packet.getData());
         b.flip();
-
+        System.out.println("byte at 0" + b.get(0));
+        System.out.println("byte at 1" + b.get(1));
         temp = b.getShort();
+        System.out.println("OPCODE: "+temp);
         return temp;
     }
+
     private void setupWriteRequest(DatagramPacket packet) throws IOException {
         handleWriteRequest(packet);
         sendWriteAck(packet.getAddress(),packet.getPort());
     }
+
     private void handleWriteRequest(DatagramPacket packet){
-        ByteBuffer b = ByteBuffer.allocate(packet.getLength());
+        ByteBuffer b = ByteBuffer.allocate(packet.getData().length);
         b.put(packet.getData());
         b.flip();
         //read packet
@@ -103,21 +113,25 @@ class Server {
 
         //filename
         filename = getStringFromBuffer(b);
+        System.out.println("filename received: " + filename);
         //0 byte
         b.get();
 
         //mode -always octet
         String mode = getStringFromBuffer(b);
+        System.out.println("mode received: " + mode);
         //0 byte
         b.get();
 
         //packet num
         numOfPackets = b.getShort();
+        System.out.println("number of packets: " + numOfPackets);
         //0
         b.get();
 
         //packet size
         packetSize = b.getShort();
+        System.out.println("packet size received: " + packetSize);
         //0
         b.get();
 
@@ -149,19 +163,21 @@ class Server {
         socket.send(packet);
     }
 
-    private String getStringFromBuffer(ByteBuffer b){
+    public String getStringFromBuffer(ByteBuffer b){
         int startPosition = b.position();
         byte nextByte = b.get();
 
         while (nextByte != 0){
             nextByte = b.get();
         }
-        int endPosition = b.position();
+        int endPosition = b.position()-1;
         b.position(startPosition);
 
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = b.position(); i < endPosition; i = b.position()) {
-            stringBuilder.append(b.getChar());
+            char c = (char)b.get();
+
+            stringBuilder.append(c);
         }
         return stringBuilder.toString();
 
@@ -194,41 +210,23 @@ class Server {
         b.flip();
         packet.setData(b.array());
         socket.send(packet);
+        System.out.println("Sent Ack");
         receivedPackets.add(packetNum);
     }
 
     private void makeFile(ByteBuffer b) {
         try {
             //get save directory
-            String directory = File.separator  + "sentFiles" + File.separator;
+            String directory = File.separator + "sentFiles" + File.separator;
             //convert the file
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(b.array());
-            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-
-            ZipFile zipFile = (ZipFile) objectInputStream.readObject();
-            //unzip file
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-
-            while(entries.hasMoreElements()){
-                ZipEntry entry = entries.nextElement();
-                InputStream stream = zipFile.getInputStream(entry);
-
-                File f = new File(directory + entry.getName());
-
-                //buffer streams
-                FileOutputStream fileWriter = new FileOutputStream(f);
-                byte[] bytes = new byte[stream.available()];
-                stream.read(bytes,0,bytes.length);
-
-
-                //write file
-                fileWriter.write(bytes);
-                fileWriter.flush();
-                fileWriter.close();
-                stream.close();
-            }
-
-        } catch (IOException | ClassNotFoundException e) {
+            File f = new File(directory + filename);
+            FileOutputStream fileOutputStream = new FileOutputStream(f);
+            fileOutputStream.write(b.array());
+            fileOutputStream.flush();
+            fileOutputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
