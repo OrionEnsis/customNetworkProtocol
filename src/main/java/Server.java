@@ -1,6 +1,7 @@
 import Packets.BasicPacket;
 import Packets.DataPacket;
 import Packets.WriteAcknowledgementPacket;
+import Packets.WriteRequestPacket;
 
 import java.io.*;
 import java.net.*;
@@ -59,13 +60,14 @@ class Server {
                 //if packet is file packet
                 if(packetType == 1) {
                     //set up for file transfer
-                    //TODO wrong packet type.  doesn't get info.
                     System.out.println("write request packet Received");
-                    WriteAcknowledgementPacket waPacket = new WriteAcknowledgementPacket(currentPacket);
-                    socket.send(waPacket.getAsUDPPacket());
+                    WriteRequestPacket wrPacket = new WriteRequestPacket(currentPacket);
+                    socket.send(wrPacket.createAcknowledgementForThisPacket().getAsUDPPacket());
+                    packetSize = wrPacket.getPacketSize();
+                    numOfPackets = wrPacket.getNumOfPackets();
 
                     //we now know packet information
-                    bytes = new byte[waPacket.getPacketSize()];
+                    bytes = new byte[packetSize];
                     currentPacket = new DatagramPacket(bytes,bytes.length);
                 }
                 //else if it is a data packet
@@ -91,8 +93,9 @@ class Server {
     private void makeFile() {
         try {
             //TODO add directory.
+            String dir = "transferredFiles" + File.separator;
             byte[] bytes = DataPacket.getDataFromCollection(receivedPackets);
-            FileOutputStream fileOutputStream = new FileOutputStream(filename);
+            FileOutputStream fileOutputStream = new FileOutputStream(dir + filename);
             fileOutputStream.write(bytes);
             fileOutputStream.flush();
             fileOutputStream.close();

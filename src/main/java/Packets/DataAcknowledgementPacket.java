@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 public class DataAcknowledgementPacket extends BasicPacket{
     private short packetNum;
 
-    public DataAcknowledgementPacket(InetAddress address, int port, short packetNum){
+    DataAcknowledgementPacket(InetAddress address, int port, short packetNum){
         super((short)4,address,port);
         this.packetNum = packetNum;
 

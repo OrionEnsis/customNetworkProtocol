@@ -70,7 +70,7 @@ class Client {
         filename = f.getName();
         //zip it up
 
-        //TODO figure out zipping
+        //TODO figure out zipping.  This might work no matter what with what we have.
 
         //make packets
         makeDataPackets(f);

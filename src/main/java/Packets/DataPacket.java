@@ -1,20 +1,17 @@
 package Packets;
 
-import javax.xml.crypto.Data;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
     private short packetNum;
     private byte[] data;
 
-    public DataPacket(InetAddress address, int port, short packetNum, byte[] data){
+    DataPacket(InetAddress address, int port, short packetNum, byte[] data){
         super((short)4,address,port);
         this.packetNum = packetNum;
         this.data = data;
@@ -88,13 +85,10 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
         return new DataAcknowledgementPacket(address,port,packetNum);
     }
 
-
-    //TODO write tests for this.
     public static byte[] getDataFromCollection(Collection<DataPacket> packets) throws IOException {
         List<DataPacket> list = new ArrayList<>(packets);
         Collections.sort(list);
 
-        List<Byte> bytes = new ArrayList<>();
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         for (DataPacket d :
                 list) {

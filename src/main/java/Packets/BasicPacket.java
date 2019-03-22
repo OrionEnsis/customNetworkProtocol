@@ -5,10 +5,10 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
 public class BasicPacket {
-    protected short opCode;
+    short opCode;
     protected DatagramPacket packet;
     protected InetAddress address;
-    protected int port;
+    int port;
 
     public BasicPacket(DatagramPacket packet){
         address = packet.getAddress();

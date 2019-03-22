@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CustomFileTransferProtocal.customFileTranferProtocal.iml" filepath="$PROJECT_DIR$/.idea/modules/CustomFileTransferProtocal.customFileTranferProtocal.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CustomFileTransferProtocal.customFileTranferProtocal.main.iml" filepath="$PROJECT_DIR$/.idea/modules/CustomFileTransferProtocal.customFileTranferProtocal.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CustomFileTransferProtocal.customFileTranferProtocal.test.iml" filepath="$PROJECT_DIR$/.idea/modules/CustomFileTransferProtocal.customFileTranferProtocal.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/customNetworkProtocol.iml" filepath="$PROJECT_DIR$/.idea/customNetworkProtocol.iml" />
     </modules>
   </component>
