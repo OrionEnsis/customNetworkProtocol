@@ -89,7 +89,7 @@ class Server {
 
     private void makeFile() {
         try {
-            //TODO add directory
+            //TODO add directory.
             byte[] bytes = DataPacket.getDataFromCollection(receivedPackets);
             FileOutputStream fileOutputStream = new FileOutputStream(filename);
             fileOutputStream.write(bytes);
