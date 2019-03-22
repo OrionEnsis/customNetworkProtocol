@@ -59,6 +59,7 @@ class Server {
                 //if packet is file packet
                 if(packetType == 1) {
                     //set up for file transfer
+                    //TODO wrong packet type.  doesn't get info.
                     System.out.println("write request packet Received");
                     WriteAcknowledgementPacket waPacket = new WriteAcknowledgementPacket(currentPacket);
                     socket.send(waPacket.getAsUDPPacket());
