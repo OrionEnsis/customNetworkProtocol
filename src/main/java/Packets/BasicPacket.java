@@ -10,7 +10,7 @@ public class BasicPacket {
     protected InetAddress address;
     protected int port;
 
-    BasicPacket(DatagramPacket packet){
+    public BasicPacket(DatagramPacket packet){
         address = packet.getAddress();
         port = packet.getPort();
         this.packet = packet;

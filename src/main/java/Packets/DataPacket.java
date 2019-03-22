@@ -1,14 +1,16 @@
 package Packets;
 
 import javax.xml.crypto.Data;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class DataPacket extends BasicPacket {
+public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
     private short packetNum;
     private byte[] data;
 
@@ -80,5 +82,29 @@ public class DataPacket extends BasicPacket {
         }
 
         return packets;
+    }
+
+    public DataAcknowledgementPacket makeAcknowledgement(){
+        return new DataAcknowledgementPacket(address,port,packetNum);
+    }
+
+
+    //TODO write tests for this.
+    public static byte[] getDataFromCollection(Collection<DataPacket> packets) throws IOException {
+        List<DataPacket> list = new ArrayList<>(packets);
+        Collections.sort(list);
+
+        List<Byte> bytes = new ArrayList<>();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for (DataPacket d :
+                list) {
+            byteArrayOutputStream.write(d.data);
+        }
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    @Override
+    public int compareTo(DataPacket o) {
+        return Short.compare(this.packetNum,o.getPacketNum());
     }
 }
