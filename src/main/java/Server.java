@@ -56,6 +56,7 @@ class Server {
 
                 //get packet type
                 packetType = bp.getOpCode();
+                System.out.println("packet type: " + packetType);
 
                 //if packet is file packet
                 if(packetType == 1) {
@@ -65,6 +66,7 @@ class Server {
                     socket.send(wrPacket.createAcknowledgementForThisPacket().getAsUDPPacket());
                     packetSize = wrPacket.getPacketSize();
                     numOfPackets = wrPacket.getNumOfPackets();
+                    filename = wrPacket.getFileName();
 
                     //we now know packet information
                     bytes = new byte[packetSize];
@@ -77,6 +79,7 @@ class Server {
                     DataPacket dPacket = new DataPacket(currentPacket);
                     socket.send(dPacket.makeAcknowledgement().getAsUDPPacket());
                     receivedPackets.add(dPacket);
+                    System.out.println("data for " + dPacket.getPacketNum());
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -92,10 +95,14 @@ class Server {
 
     private void makeFile() {
         try {
-            //TODO add directory.
-            String dir = "transferredFiles" + File.separator;
+            String directory= System.getProperty("user.home")+ File.separator + "transferredFiles";
+            System.out.println(directory);
+            File dir = new File(directory);
+            dir.mkdirs();
+            File f = new File(dir, filename);
+            System.out.println(f.createNewFile());
             byte[] bytes = DataPacket.getDataFromCollection(receivedPackets);
-            FileOutputStream fileOutputStream = new FileOutputStream(dir + filename);
+            FileOutputStream fileOutputStream = new FileOutputStream(f);
             fileOutputStream.write(bytes);
             fileOutputStream.flush();
             fileOutputStream.close();

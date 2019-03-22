@@ -12,7 +12,7 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
     private byte[] data;
 
     DataPacket(InetAddress address, int port, short packetNum, byte[] data){
-        super((short)4,address,port);
+        super((short)3,address,port);
         this.packetNum = packetNum;
         this.data = data;
 
@@ -20,7 +20,7 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
     }
 
     public DataPacket(DatagramPacket packet){
-        super((short)4,packet.getAddress(),packet.getPort());
+        super((short)3,packet.getAddress(),packet.getPort());
         this.packet = packet;
 
         decodePacket();

@@ -2,14 +2,14 @@
 import Packets.DataAcknowledgementPacket;
 import Packets.DataPacket;
 import Packets.WriteRequestPacket;
-
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.*;
 
+
 class Client {
+    private final int RNG = 50;
     private final int PORT = 2697;
     private final boolean HAS_SLIDING_WINDOW;
     private final boolean SIM_DROP_PACKETS;
@@ -49,7 +49,7 @@ class Client {
         }
 
         //get window or stack
-        HAS_SLIDING_WINDOW = args[2].equalsIgnoreCase("windowed");
+        HAS_SLIDING_WINDOW = args[2].equalsIgnoreCase("window");
 
         //get drop packets.
         SIM_DROP_PACKETS = args[3].equalsIgnoreCase("SimON");
@@ -65,12 +65,11 @@ class Client {
         //prompt for directory
         System.out.println("Enter the file Directory");
         //filename = scanner.nextLine();
-        filename = "/home/jspagnol/chatlog.txt";
+        //filename = "/home/jspagnol/chatlog.txt";
+        filename = "/home/jspagnol/Desktop/networking benchmarks";
         f = new File(filename);
         filename = f.getName();
-        //zip it up
-
-        //TODO figure out zipping.  This might work no matter what with what we have.
+        //zip it up  //TODO figure this shit out
 
         //make packets
         makeDataPackets(f);
@@ -80,6 +79,7 @@ class Client {
         send(start);
 
     }
+
 
     private void makeDataPackets(File data){
 
@@ -102,6 +102,7 @@ class Client {
     }
 
     private void send(WriteRequestPacket startPacket){
+        Random r = new Random();
         byte[] data = new byte[startPacket.getAsUDPPacket().getData().length];
         boolean notReceivedStartAck = true;
         DatagramPacket receiveAck = new DatagramPacket(data, data.length);
@@ -142,10 +143,14 @@ class Client {
                 for (int i = 0; i < maxPackets && !packetQueue.isEmpty(); i++) {
                     currentPacket = packetQueue.poll();
                     blockPackets.add(currentPacket);
-                    socket.send(allPackets.get(currentPacket).getAsUDPPacket());
+                    if(!SIM_DROP_PACKETS || r.nextInt(100) > RNG)
+                        socket.send(allPackets.get(currentPacket).getAsUDPPacket());
+                    else
+                        System.out.println("SIM Drop of " + currentPacket);
+                    System.out.println(currentPacket + " sent");
 
                 }
-                System.out.println("Full block sent");
+                System.out.println("Full block sent: " + packetQueue.size() + " left.");
             } catch (IOException e) {
                 System.out.println("Not all packets sent.");
             }
@@ -153,11 +158,13 @@ class Client {
             try {
                 //receive up to block of packets
                 while (blockPackets.size() != 0) {
-                    data = new byte[7];//number of bytes in ack packet
+                    System.out.println("awaiting acks.");
+                    data = new byte[4];//number of bytes in ack packet
                     DatagramPacket packet = new DatagramPacket(data, data.length);
                     socket.receive(packet);
                     DataAcknowledgementPacket daPacket = new DataAcknowledgementPacket(packet);
                     short packetNum = daPacket.getPacketNum();
+                    System.out.println("Receieved ack for " + packetNum);
                     blockPackets.remove(packetNum);
                 }
 

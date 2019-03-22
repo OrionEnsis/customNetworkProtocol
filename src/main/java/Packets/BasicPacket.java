@@ -36,7 +36,7 @@ public class BasicPacket {
     }
 
     short getOpCodeFromPacket(){
-        ByteBuffer b = ByteBuffer.allocate(packet.getLength());
+        ByteBuffer b = ByteBuffer.allocate(packet.getData().length);
         b.put(packet.getData());
         b.flip();
 
