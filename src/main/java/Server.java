@@ -88,7 +88,6 @@ class Server {
             if(numOfPackets == receivedPackets.size()) {
                 //turn into a file
                 makeFile();
-                break;
             }
         }
     }

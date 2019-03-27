@@ -71,6 +71,7 @@ class Client {
         filename = f.getName();
         //zip it up  //TODO figure this shit out
 
+
         //make packets
         makeDataPackets(f);
 
@@ -78,11 +79,26 @@ class Client {
         start = new WriteRequestPacket(address,PORT,filename,PACKET_SIZE,(short)allPackets.size());
         send(start);
 
+        if(f.isDirectory()){
+            getAllFiles(f);
+        }
+    }
+
+    private void getAllFiles(File file) {
+        if(file.isDirectory())
+            for (File f:
+                 file.listFiles()) {
+                makeDataPackets(f);
+                send(new WriteRequestPacket(address,PORT,f.getName(),PACKET_SIZE,(short)allPackets.size()));
+                if(f.isDirectory()){
+                    getAllFiles(f);
+                }
+            }
     }
 
 
     private void makeDataPackets(File data){
-
+        allPackets = new HashMap<>();
         //convert data to binary
         try {
 
