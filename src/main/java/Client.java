@@ -16,7 +16,7 @@ class Client {
     private final short PACKET_SIZE = 512;
     private final String SEND_ADDRESS = "pi.cs.oswego.edu";
     private final int TIMEOUT = 500;
-    private final int BLOCK_SIZE = 100;
+    private final int BLOCK_SIZE = 32;
 
     private DatagramSocket socket;
     private InetAddress address;
@@ -161,17 +161,14 @@ class Client {
             try {
                 blockPackets = new HashSet<>();
 
-                for (int i = 0; i < maxPackets && !packetQueue.isEmpty(); i++) {
+                while(!packetQueue.isEmpty() && blockPackets.size() < maxPackets) {
                     currentPacket = packetQueue.poll();
                     blockPackets.add(currentPacket);
                     if(!SIM_DROP_PACKETS || r.nextInt(100) > RNG)
                         socket.send(allPackets.get(currentPacket).getAsUDPPacket());
                     else
                         System.out.println("SIM Drop of " + currentPacket);
-                    //System.out.println(currentPacket + " sent");
-
                 }
-                //System.out.println("Full block sent: " + packetQueue.size() + " left.");
             } catch (IOException e) {
                 System.out.println("Not all packets sent.");
             }
@@ -189,11 +186,19 @@ class Client {
                     blockPackets.remove(packetNum);
                 }
 
-                //System.out.println("All acknowledgements received from last block");
+                //success we can increase the packet amount by 1
+                if(HAS_SLIDING_WINDOW){
+                    maxPackets++;
+                }
             } catch (IOException e) {
                 //insert the remainders
                 packetQueue.addAll(blockPackets);
                 System.out.println("Only a partial full block sent.");
+                if(HAS_SLIDING_WINDOW){
+                    maxPackets /= 2 ;
+                    if(maxPackets < 1)
+                        maxPackets = 1;
+                }
             }
         }
 
