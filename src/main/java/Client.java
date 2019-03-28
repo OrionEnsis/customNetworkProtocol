@@ -16,14 +16,14 @@ class Client {
     private final short PACKET_SIZE = 4096;
     private final short DATA_CODE = 3;
     private final String sendAddress = "pi.cs.oswego.edu";
-    private final int TIMEOUT = 5000;
+    private final int TIMEOUT = 500;
     private final int BLOCK_SIZE = 100;
 
     private DatagramSocket socket;
     private InetAddress address;
 
-    private HashSet<Short> blockPackets;                    //set of packets awaiting ack
-    private HashMap<Short, DataPacket> allPackets;  //hash of all packets
+    private HashSet<Short> blockPackets;                //set of packets awaiting ack
+    private HashMap<Short, DataPacket> allPackets;      //hash of all packets
     private Queue<Short> packetQueue;                   //queue of all remaining packets
 
     Client(String[] args){
@@ -66,32 +66,38 @@ class Client {
         System.out.println("Enter the file Directory");
         //filename = scanner.nextLine();
         //filename = "/home/jspagnol/chatlog.txt";
-        filename = "/home/jspagnol/Desktop/networking benchmarks";
+        filename = "/home/jspagnol/Desktop/Network TransferTestFiles";
         f = new File(filename);
         filename = f.getName();
         //zip it up  //TODO figure this shit out
 
 
-        //make packets
-        makeDataPackets(f);
+
 
         //start sending.
-        start = new WriteRequestPacket(address,PORT,filename,PACKET_SIZE,(short)allPackets.size());
-        send(start);
-
         if(f.isDirectory()){
-            getAllFiles(f);
+            getAllFiles(f,filename);
+        }else{
+            //make packets
+            makeDataPackets(f);
+            System.out.println("sending " + filename);
+            start = new WriteRequestPacket(address,PORT,filename,PACKET_SIZE,(short)allPackets.size());
+            send(start);
         }
     }
 
-    private void getAllFiles(File file) {
+    private void getAllFiles(File file,String dir) {
         if(file.isDirectory())
             for (File f:
                  file.listFiles()) {
-                makeDataPackets(f);
-                send(new WriteRequestPacket(address,PORT,f.getName(),PACKET_SIZE,(short)allPackets.size()));
+
                 if(f.isDirectory()){
-                    getAllFiles(f);
+                    getAllFiles(f, dir + File.separator + f.getName());
+                }
+                else{
+                    System.out.println("sending " + f.getName());
+                    makeDataPackets(f);
+                    send(new WriteRequestPacket(address,PORT,dir + File.separator + f.getName(),PACKET_SIZE,(short)allPackets.size()));
                 }
             }
     }
@@ -143,7 +149,7 @@ class Client {
                 //TODO this should examine for a correct acknowledgement
                 socket.receive(receiveAck);
                 notReceivedStartAck = false;
-                System.out.println("acknowledgement receieved.  Starting data Transfer");
+                System.out.println("acknowledgement received.  Starting data Transfer");
             } catch (IOException e) {
                 System.out.println("packet failed for some reason, resending");
             }
@@ -163,10 +169,10 @@ class Client {
                         socket.send(allPackets.get(currentPacket).getAsUDPPacket());
                     else
                         System.out.println("SIM Drop of " + currentPacket);
-                    System.out.println(currentPacket + " sent");
+                    //System.out.println(currentPacket + " sent");
 
                 }
-                System.out.println("Full block sent: " + packetQueue.size() + " left.");
+                //System.out.println("Full block sent: " + packetQueue.size() + " left.");
             } catch (IOException e) {
                 System.out.println("Not all packets sent.");
             }
@@ -174,17 +180,17 @@ class Client {
             try {
                 //receive up to block of packets
                 while (blockPackets.size() != 0) {
-                    System.out.println("awaiting acks.");
+                    //System.out.println("awaiting acks.");
                     data = new byte[4];//number of bytes in ack packet
                     DatagramPacket packet = new DatagramPacket(data, data.length);
                     socket.receive(packet);
                     DataAcknowledgementPacket daPacket = new DataAcknowledgementPacket(packet);
                     short packetNum = daPacket.getPacketNum();
-                    System.out.println("Receieved ack for " + packetNum);
+                    //System.out.println("Receieved ack for " + packetNum);
                     blockPackets.remove(packetNum);
                 }
 
-                System.out.println("All acknowledgements received from last block");
+                //System.out.println("All acknowledgements received from last block");
             } catch (IOException e) {
                 //insert the remainders
                 packetQueue.addAll(blockPackets);
@@ -194,6 +200,8 @@ class Client {
 
         //file should have been sent.
         System.out.println("File sent");
+        blockPackets = new HashSet<>();
+        packetQueue = new ArrayDeque<>();
     }
 
 }

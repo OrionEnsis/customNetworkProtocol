@@ -51,12 +51,12 @@ class Server {
             try {
                 //wait for packet
                 socket.receive(currentPacket);
-                System.out.println("Received Packet");
+                //System.out.println("Received Packet");
                 BasicPacket bp = new BasicPacket(currentPacket);
 
                 //get packet type
                 packetType = bp.getOpCode();
-                System.out.println("packet type: " + packetType);
+                //System.out.println("packet type: " + packetType);
 
                 //if packet is file packet
                 if(packetType == 1) {
@@ -74,7 +74,7 @@ class Server {
                 }
                 //else if it is a data packet
                 else if( packetType == 3) {
-                    System.out.println("Data packet received");
+                    //System.out.println("Data packet received");
                     //handle data
                     DataPacket dPacket = new DataPacket(currentPacket);
                     socket.send(dPacket.makeAcknowledgement().getAsUDPPacket());
@@ -88,17 +88,23 @@ class Server {
             if(numOfPackets == receivedPackets.size()) {
                 //turn into a file
                 makeFile();
+                receivedPackets = new HashSet<>();
             }
         }
     }
 
     private void makeFile() {
         try {
-            String directory= System.getProperty("user.home")+ File.separator + "transferredFiles";
+            System.out.println("Making File " + filename);
+            String extendeddir = filename.substring(0,filename.lastIndexOf(File.separator));
+            String directory= System.getProperty("user.home")+ File.separator + "transferredFiles" + File.separator + extendeddir;
+            String trueFilename = filename.substring(filename.lastIndexOf(File.separator));
             System.out.println(directory);
+            System.out.println(trueFilename);
             File dir = new File(directory);
             dir.mkdirs();
-            File f = new File(dir, filename);
+            File f = new File(directory, trueFilename);
+
             System.out.println(f.createNewFile());
             byte[] bytes = DataPacket.getDataFromCollection(receivedPackets);
             FileOutputStream fileOutputStream = new FileOutputStream(f);

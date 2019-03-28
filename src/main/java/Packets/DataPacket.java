@@ -72,7 +72,7 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
                 packetData = Arrays.copyOfRange(data,i,data.length);
             }
 
-            i+= endRange;
+            i = endRange;
 
             packets.add(new DataPacket(address,port,packetNum,packetData));
             packetNum++;
