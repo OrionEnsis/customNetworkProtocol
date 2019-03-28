@@ -76,14 +76,12 @@ class Server {
                 }
                 //else if it is a data packet
                 else if( packetType == 3) {
-                    //System.out.println("Data packet received");
                     //handle data
                     DataPacket dPacket = new DataPacket(currentPacket);
                     socket.send(dPacket.makeAcknowledgement().getAsUDPPacket());
                     receivedPackets.add(dPacket);
-                    System.out.println(receivedPackets.size() + "/" + numOfPackets);
-//                    System.out.println("data for " + dPacket.getPacketNum());
-//                    System.out.println("ack for " + dPacket.makeAcknowledgement().getPacketNum());
+//                    System.out.println(receivedPackets.size() + "/" + numOfPackets);
+
                 }
             } catch (IOException e) {
                 e.printStackTrace();

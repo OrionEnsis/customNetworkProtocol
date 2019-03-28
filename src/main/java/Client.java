@@ -13,6 +13,7 @@ class Client {
     private final int PORT = 2697;
     private final boolean HAS_SLIDING_WINDOW;
     private final boolean SIM_DROP_PACKETS;
+    private boolean BENCHMARK;
     private final short PACKET_SIZE = 512;
     private final String SEND_ADDRESS = "pi.cs.oswego.edu";
     private final int TIMEOUT = 500;
@@ -52,36 +53,43 @@ class Client {
 
         //get drop packets.
         SIM_DROP_PACKETS = args[3].equalsIgnoreCase("SimON");
+
+        try{
+            var temp = args[4].equalsIgnoreCase("benchmark");
+            BENCHMARK = temp;
+        }catch(ArrayIndexOutOfBoundsException e){
+            BENCHMARK = false;
+        }
     }
 
     void run(){
-        Scanner scanner = new Scanner(System.in);
         String filename;
         File f;
-        //ZipFile z = null;
         WriteRequestPacket start;
+        int trials;
+        if(BENCHMARK)
+            trials = 100;
+        else
+            trials = 1;
 
-        //prompt for directory
-        System.out.println("Enter the file Directory");
-        //filename = scanner.nextLine();
-        //filename = "/home/jspagnol/chatlog.txt";
-        filename = "/home/jspagnol/Desktop/Network TransferTestFiles";
-        f = new File(filename);
-        filename = f.getName();
-        //zip it up  //TODO figure this shit out
+        //TODO file writing goes here
+        for (int i = 0; i < trials; i++) {
 
+            //prompt for directory
+            filename = "/home/jspagnol/Desktop/Network TransferTestFiles";
+            f = new File(filename);
+            filename = f.getName();
 
-
-
-        //start sending.
-        if(f.isDirectory()){
-            getAllFiles(f,filename);
-        }else{
-            //make packets
-            makeDataPackets(f);
-            System.out.println("sending " + filename);
-            start = new WriteRequestPacket(address,PORT,filename,PACKET_SIZE,(long)allPackets.size());
-            send(start);
+            //start sending.
+            if (f.isDirectory()) {
+                getAllFiles(f, filename);
+            } else {
+                //make packets
+                makeDataPackets(f);
+                System.out.println("sending " + filename);
+                start = new WriteRequestPacket(address, PORT, filename, PACKET_SIZE, (long) allPackets.size());
+                send(start);
+            }
         }
     }
 
