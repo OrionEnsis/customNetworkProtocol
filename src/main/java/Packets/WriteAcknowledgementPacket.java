@@ -6,9 +6,9 @@ import java.nio.ByteBuffer;
 
 public class WriteAcknowledgementPacket extends BasicPacket {
     private short packetSize;
-    private short numOfPackets;
+    private long numOfPackets;
 
-    public WriteAcknowledgementPacket(InetAddress address, int port, short packetSize, short numOfPackets){
+    WriteAcknowledgementPacket(InetAddress address, int port, short packetSize, long numOfPackets){
         super((short) 4, address, port);
 
         this.packetSize = packetSize;
@@ -17,18 +17,18 @@ public class WriteAcknowledgementPacket extends BasicPacket {
         makePacket();
     }
 
-    public WriteAcknowledgementPacket(DatagramPacket packet){
+    WriteAcknowledgementPacket(DatagramPacket packet){
         super((short) 4,packet.getAddress(),packet.getPort());
         this.packet = packet;
 
         decodePacket();
     }
 
-    public short getPacketSize() {
+    short getPacketSize() {
         return packetSize;
     }
 
-    public short getNumOfPackets() {
+    long getNumOfPackets() {
         return numOfPackets;
     }
 
@@ -38,7 +38,8 @@ public class WriteAcknowledgementPacket extends BasicPacket {
         b.flip();
 
         opCode = retrieveShort(b);
-        numOfPackets = retrieveShort(b);
+        numOfPackets = b.getLong();
+        b.get();
         packetSize = retrieveShort(b);
     }
 
@@ -50,7 +51,8 @@ public class WriteAcknowledgementPacket extends BasicPacket {
         insertShort(b,opCode);
 
         //Num of Packets
-        insertShort(b,numOfPackets);
+        b.putLong(numOfPackets);
+        b.put((byte)0);
 
         //Packet Size
         insertShort(b,packetSize);

@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
-    private short packetNum;
+    private long packetNum;
     private byte[] data;
 
     DataPacket(InetAddress address, int port, short packetNum, byte[] data){
@@ -33,12 +33,12 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
         b.flip();
 
         opCode = b.getShort();
-        packetNum = b.getShort();
+        packetNum = b.getLong();
 
         b.get(data);
     }
 
-    public short getPacketNum() {
+    public long getPacketNum() {
         return packetNum;
     }
 
@@ -47,11 +47,11 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
     }
 
     private void makePacket(){
-        int spaceNeeded = 4 + data.length;
+        int spaceNeeded = 10 + data.length;
         ByteBuffer b = ByteBuffer.allocate(spaceNeeded);
 
         b.putShort(opCode);
-        b.putShort(packetNum);
+        b.putLong(packetNum);
         b.put(data);
 
         createPacket(b,spaceNeeded);
@@ -99,6 +99,6 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
 
     @Override
     public int compareTo(DataPacket o) {
-        return Short.compare(this.packetNum,o.getPacketNum());
+        return Long.compare(this.packetNum,o.getPacketNum());
     }
 }

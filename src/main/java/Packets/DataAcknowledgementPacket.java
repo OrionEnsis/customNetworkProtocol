@@ -5,9 +5,9 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 
 public class DataAcknowledgementPacket extends BasicPacket{
-    private short packetNum;
+    private long packetNum;
 
-    DataAcknowledgementPacket(InetAddress address, int port, short packetNum){
+    DataAcknowledgementPacket(InetAddress address, int port, long packetNum){
         super((short)4,address,port);
         this.packetNum = packetNum;
 
@@ -21,7 +21,7 @@ public class DataAcknowledgementPacket extends BasicPacket{
         decodePacket();
     }
 
-    public short getPacketNum() {
+    public long getPacketNum() {
         return packetNum;
     }
 
@@ -31,13 +31,13 @@ public class DataAcknowledgementPacket extends BasicPacket{
         b.flip();
 
         opCode = b.getShort();
-        packetNum = b.getShort();
+        packetNum = b.getLong();
     }
 
     private void makePacket(){
         ByteBuffer b = ByteBuffer.allocate(4);
         b.putShort(opCode);
-        b.putShort(packetNum);
+        b.putLong(packetNum);
 
         createPacket(b,4);
     }

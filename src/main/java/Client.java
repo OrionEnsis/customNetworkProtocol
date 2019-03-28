@@ -13,7 +13,7 @@ class Client {
     private final int PORT = 2697;
     private final boolean HAS_SLIDING_WINDOW;
     private final boolean SIM_DROP_PACKETS;
-    private final short PACKET_SIZE = 4096;
+    private final short PACKET_SIZE = 512;
     private final short DATA_CODE = 3;
     private final String sendAddress = "pi.cs.oswego.edu";
     private final int TIMEOUT = 500;
@@ -22,9 +22,9 @@ class Client {
     private DatagramSocket socket;
     private InetAddress address;
 
-    private HashSet<Short> blockPackets;                //set of packets awaiting ack
-    private HashMap<Short, DataPacket> allPackets;      //hash of all packets
-    private Queue<Short> packetQueue;                   //queue of all remaining packets
+    private HashSet<Long> blockPackets;                //set of packets awaiting ack
+    private HashMap<Long, DataPacket> allPackets;      //hash of all packets
+    private Queue<Long> packetQueue;                   //queue of all remaining packets
 
     Client(String[] args){
         blockPackets = new HashSet<>();
@@ -157,7 +157,7 @@ class Client {
 
         //while there are packets to send and we are still awaiting acks
         while(!blockPackets.isEmpty() || !packetQueue.isEmpty()) {
-            short currentPacket;
+            long currentPacket;
             //send "block" of packets
             try {
                 blockPackets = new HashSet<>();
@@ -185,7 +185,7 @@ class Client {
                     DatagramPacket packet = new DatagramPacket(data, data.length);
                     socket.receive(packet);
                     DataAcknowledgementPacket daPacket = new DataAcknowledgementPacket(packet);
-                    short packetNum = daPacket.getPacketNum();
+                    long packetNum = daPacket.getPacketNum();
                     //System.out.println("Receieved ack for " + packetNum);
                     blockPackets.remove(packetNum);
                 }

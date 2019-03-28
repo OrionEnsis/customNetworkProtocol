@@ -8,9 +8,9 @@ public class WriteRequestPacket extends BasicPacket{
     private String filename;
     private String mode;
     private short packetSize;
-    private short numOfPackets;
+    private long numOfPackets;
 
-    public WriteRequestPacket(InetAddress address, int port, String filename, short packetSize, short numOfPackets){
+    public WriteRequestPacket(InetAddress address, int port, String filename, short packetSize, long numOfPackets){
         super((short)1,address,port);
         this.filename = filename;
         this.mode = "octet";
@@ -39,7 +39,7 @@ public class WriteRequestPacket extends BasicPacket{
         return mode;
     }
 
-    public short getNumOfPackets() {
+    public long getNumOfPackets() {
         return numOfPackets;
     }
 
@@ -66,7 +66,7 @@ public class WriteRequestPacket extends BasicPacket{
         b.put((byte)0);
 
         //number of packets
-        b.putShort(numOfPackets);
+        b.putLong(numOfPackets);
         b.put((byte)0);
 
         //packet size
