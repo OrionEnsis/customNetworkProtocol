@@ -44,7 +44,7 @@ public class WriteAcknowledgementPacket extends BasicPacket {
     }
 
     private void makePacket(){
-        short spaceNeeded = 9; //3 0s and 3 shorts
+        short spaceNeeded = 15;
         ByteBuffer b = ByteBuffer.allocate(spaceNeeded);
 
         //opCode

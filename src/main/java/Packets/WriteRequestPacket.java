@@ -47,10 +47,10 @@ public class WriteRequestPacket extends BasicPacket{
         return packetSize;
     }
 
-    protected void makePacket(){
+    private void makePacket(){
         byte[] fileNameAsBytes = filename.getBytes(); //each character is 1 byte
         byte[] modeAsBytes = mode.getBytes();
-        int spacingBytes = 10; //extra bytes for formatting
+        int spacingBytes = 16; //extra bytes for formatting
         int totalBytesNeeded = fileNameAsBytes.length + modeAsBytes.length + spacingBytes;
         ByteBuffer b = ByteBuffer.allocate(totalBytesNeeded);
 
@@ -94,7 +94,7 @@ public class WriteRequestPacket extends BasicPacket{
         b.get();
 
         //get number of packets
-        numOfPackets = b.getShort();
+        numOfPackets = b.getLong();
         b.get();
 
         //get packet size

@@ -11,7 +11,7 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
     private long packetNum;
     private byte[] data;
 
-    DataPacket(InetAddress address, int port, short packetNum, byte[] data){
+    DataPacket(InetAddress address, int port, long packetNum, byte[] data){
         super((short)3,address,port);
         this.packetNum = packetNum;
         this.data = data;
@@ -28,7 +28,7 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
 
     private void decodePacket() {
         ByteBuffer b = ByteBuffer.allocate(packet.getData().length);
-        data = new byte[packet.getData().length - 4];
+        data = new byte[packet.getData().length - 10];
         b.put(packet.getData());
         b.flip();
 
@@ -58,10 +58,10 @@ public class DataPacket extends BasicPacket implements Comparable<DataPacket>{
     }
 
     public static List<DataPacket> getPacketsNeededForData(byte[] data, short packetSize, InetAddress address, int port){
-        int headerSize = 4;
+        int headerSize = 10;
         int i = 0;
         ArrayList<DataPacket> packets = new ArrayList<>();
-        short packetNum = 0;
+        long packetNum = 0;
         while(i < data.length){
             int endRange = packetSize - headerSize +i;
             byte[] packetData;

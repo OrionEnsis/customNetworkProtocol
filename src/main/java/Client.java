@@ -80,7 +80,7 @@ class Client {
             //make packets
             makeDataPackets(f);
             System.out.println("sending " + filename);
-            start = new WriteRequestPacket(address,PORT,filename,PACKET_SIZE,(short)allPackets.size());
+            start = new WriteRequestPacket(address,PORT,filename,PACKET_SIZE,(long)allPackets.size());
             send(start);
         }
     }
@@ -96,7 +96,7 @@ class Client {
                 else{
                     System.out.println("sending " + f.getName());
                     makeDataPackets(f);
-                    send(new WriteRequestPacket(address,PORT,dir + File.separator + f.getName(),PACKET_SIZE,(short)allPackets.size()));
+                    send(new WriteRequestPacket(address,PORT,dir + File.separator + f.getName(),PACKET_SIZE,(long)allPackets.size()));
                 }
             }
     }
@@ -177,7 +177,7 @@ class Client {
                 //receive up to block of packets
                 while (blockPackets.size() != 0) {
                     //System.out.println("awaiting acks.");
-                    data = new byte[4];//number of bytes in ack packet
+                    data = new byte[10];//number of bytes in ack packet
                     DatagramPacket packet = new DatagramPacket(data, data.length);
                     socket.receive(packet);
                     DataAcknowledgementPacket daPacket = new DataAcknowledgementPacket(packet);

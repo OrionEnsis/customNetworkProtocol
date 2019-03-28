@@ -68,6 +68,8 @@ class Server {
                     numOfPackets = wrPacket.getNumOfPackets();
                     filename = wrPacket.getFileName();
 
+                    System.out.println("filename " + filename);
+
                     //we now know packet information
                     bytes = new byte[packetSize];
                     currentPacket = new DatagramPacket(bytes,bytes.length);
@@ -79,16 +81,21 @@ class Server {
                     DataPacket dPacket = new DataPacket(currentPacket);
                     socket.send(dPacket.makeAcknowledgement().getAsUDPPacket());
                     receivedPackets.add(dPacket);
-                    System.out.println("data for " + dPacket.getPacketNum());
+                    System.out.println(receivedPackets.size() + "/" + numOfPackets);
+//                    System.out.println("data for " + dPacket.getPacketNum());
+//                    System.out.println("ack for " + dPacket.makeAcknowledgement().getPacketNum());
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
             //if all packets received
-            if(numOfPackets == receivedPackets.size()) {
+            if(numOfPackets != 0 && numOfPackets == (long)receivedPackets.size()) {
                 //turn into a file
                 makeFile();
-                receivedPackets = new HashSet<>();
+                numOfPackets = 0;
+                receivedPackets.clear();
+                bytes = new byte[15333];
+                currentPacket = new DatagramPacket(bytes,bytes.length);
             }
         }
     }

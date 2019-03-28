@@ -35,11 +35,11 @@ public class DataAcknowledgementPacket extends BasicPacket{
     }
 
     private void makePacket(){
-        ByteBuffer b = ByteBuffer.allocate(4);
+        ByteBuffer b = ByteBuffer.allocate(10);
         b.putShort(opCode);
         b.putLong(packetNum);
 
-        createPacket(b,4);
+        createPacket(b,10);
     }
 
 }
