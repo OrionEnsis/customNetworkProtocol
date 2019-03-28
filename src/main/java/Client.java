@@ -14,8 +14,7 @@ class Client {
     private final boolean HAS_SLIDING_WINDOW;
     private final boolean SIM_DROP_PACKETS;
     private final short PACKET_SIZE = 512;
-    private final short DATA_CODE = 3;
-    private final String sendAddress = "pi.cs.oswego.edu";
+    private final String SEND_ADDRESS = "pi.cs.oswego.edu";
     private final int TIMEOUT = 500;
     private final int BLOCK_SIZE = 100;
 
@@ -39,10 +38,10 @@ class Client {
             //get ipvMode
             if (args[1].equals("ipv4")) {
                 //IPV4
-                address = Inet4Address.getByName(sendAddress);
+                address = Inet4Address.getByName(SEND_ADDRESS);
             } else {
                 //IPV6
-                address = Inet6Address.getByName(sendAddress);
+                address = Inet6Address.getByName(SEND_ADDRESS);
             }
         } catch (SocketException | UnknownHostException e) {
             e.printStackTrace();

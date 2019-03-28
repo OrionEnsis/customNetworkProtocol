@@ -15,7 +15,7 @@ class Server {
 
     private String filename;
     private short packetSize;
-    private short numOfPackets;
+    private long numOfPackets;
     private HashSet<DataPacket> receivedPackets;
 
     Server(String[] args){
