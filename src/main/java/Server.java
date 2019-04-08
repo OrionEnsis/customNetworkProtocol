@@ -104,13 +104,10 @@ class Server {
             String extendeddir = filename.substring(0,filename.lastIndexOf(File.separator));
             String directory= System.getProperty("user.home")+ File.separator + "transferredFiles" + File.separator + extendeddir;
             String trueFilename = filename.substring(filename.lastIndexOf(File.separator));
-            System.out.println(directory);
-            System.out.println(trueFilename);
             File dir = new File(directory);
             dir.mkdirs();
             File f = new File(directory, trueFilename);
-
-            System.out.println(f.createNewFile());
+            f.createNewFile();
             byte[] bytes = DataPacket.getDataFromCollection(receivedPackets);
             FileOutputStream fileOutputStream = new FileOutputStream(f);
             fileOutputStream.write(bytes);
